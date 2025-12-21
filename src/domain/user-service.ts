@@ -24,6 +24,14 @@ export default class UsersService {
     return this._userRepo.update(id, user);
   }
 
+  async getCurrentUser(): Promise<User | null> {
+    return this._userRepo.getCurrentUser();
+  }
+
+  async updateCurrentUser(user: UserUpdate): Promise<User> {
+    return this._userRepo.updateCurrentUser(user);
+  }
+
   // Метод для получения или создания пользователя при авторизации через Telegram
   async getOrCreateUserByTelegram(
     telegramId: string,

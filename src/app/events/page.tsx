@@ -1,13 +1,15 @@
 "use client"
 import { redirect, useSearchParams } from "next/navigation";
 import ChessEventsService from "../../domain/chess-events-service";
-import ChessEventsMockRepository from "../../infractructure/chess-events-mock.repository";
+import ChessEventsRestRepository from "../../infractructure/chess-events-rest.repository";
+import EventRegistrationsRestRepository from "../../infractructure/event-registrations-rest.repository";
 import Image, { StaticImageData } from "next/image";
 import CalendarIcon from '@/../public/calendar_month.svg';
 import Location from '@/../public/location_on.svg';
 import PersonIcon from '@/../public/person.svg';
 import { useEffect, useState } from "react";
 import ChessEvent from "../../domain/chess-event";
+import { useAuth } from "../../components/AuthProvider";
 
 const dateFormatter = new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: 'long', year: undefined });
 
@@ -15,27 +17,105 @@ export default function EventPage(
 ) {
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
-  const repo = new ChessEventsMockRepository();
-  const serv = new ChessEventsService(repo);
+  const { user } = useAuth();
+  const eventsRepo = new ChessEventsRestRepository();
+  const eventsServ = new ChessEventsService(eventsRepo);
+  const registrationsRepo = new EventRegistrationsRestRepository();
+
   const [event, setEvent] = useState<ChessEvent | null>(null);
   const [participants, setParticipants] = useState<string[]>([]);
-  const [r, setR] = useState<number>();
+  const [signed, setSigned] = useState(false);
+  const [registrationId, setRegistrationId] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (id === null) {
       redirect('/404');
     }
-    serv.getById(id).then((_event) => {
+    eventsServ.getById(id).then((_event) => {
       if (_event === null) {
         redirect('/404');
       }
-      setEvent(_event)
+      setEvent(_event);
       setParticipants(Array.from({ length: _event.participants }, (_, i) => `https://i.pravatar.cc/150?img=${i + 1}`));
-      setR(Math.random())
     });
   }, [id]);
 
-  const [signed, setSigned] = useState(false)
+  // Проверяем зарегистрирован ли пользователь на это событие
+  useEffect(() => {
+    async function checkRegistration() {
+      if (!user || !id) return;
+
+      try {
+        const registrations = await registrationsRepo.getMyRegistrations();
+        const registration = registrations.find(reg => reg.eventId === Number(id));
+        if (registration) {
+          setSigned(true);
+          setRegistrationId(registration.id);
+        }
+      } catch (error) {
+        console.error("Failed to check registration:", error);
+      }
+    }
+
+    checkRegistration();
+  }, [user, id]);
+
+  async function handleRegister() {
+    console.log("🔘 Register button clicked", { user, id, isLoading });
+    if (!user || !id) {
+      console.log("❌ Cannot register: user or id missing", { user: !!user, id });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const registration = await registrationsRepo.create({
+        user_id: user.id,
+        event_id: Number(id),
+      });
+      setSigned(true);
+      setRegistrationId(registration.id);
+    } catch (error: any) {
+      console.error("Failed to register for event:", error);
+
+      // Всегда перезапрашиваем регистрации после ошибки чтобы обновить UI
+      try {
+        const registrations = await registrationsRepo.getMyRegistrations();
+        const registration = registrations.find(reg => reg.eventId === Number(id));
+        if (registration) {
+          console.log("✅ Found existing registration:", registration);
+          setSigned(true);
+          setRegistrationId(registration.id);
+          // Не показываем ошибку если пользователь уже записан
+          return;
+        }
+      } catch (e) {
+        console.error("Failed to fetch registrations after error:", e);
+      }
+
+      // Показываем ошибку только если пользователь действительно не записан
+      alert("Не удалось записаться на событие. Попробуйте ещё раз.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleUnregister() {
+    if (!registrationId) return;
+
+    setIsLoading(true);
+    try {
+      await registrationsRepo.delete(registrationId);
+      setSigned(false);
+      setRegistrationId(null);
+    } catch (error) {
+      console.error("Failed to unregister from event:", error);
+      alert("Не удалось отменить запись");
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return event ? (<main className="mx-auto">
     <div className="p-4">
@@ -47,8 +127,8 @@ export default function EventPage(
       </h1>
       <div className="mt-3 flex flex-col gap-6">
         <InfoItem icon={CalendarIcon} value={dateFormatter.format(event.date)} />
-        <InfoItem icon={Location} value={event.location} />
-        <InfoItem icon={PersonIcon} value={event.organizer} />
+        <InfoItem icon={Location} value={`${event.city.name}, ${event.location}`} />
+        <InfoItem icon={PersonIcon} value={event.organizer.username || event.organizer.telegram_id} />
       </div>
       <h2 className="text-white text-xl font-bold mb-2 mt-6">Описание</h2>
       <p className="mt-3 text-lg leading-7 text-gray-300">
@@ -77,7 +157,9 @@ export default function EventPage(
 
     <div className="p-4 border-t border-white/10 font-bold">
       {(() => {
-        return r && r > 0.5 ?
+        // Проверяем, является ли текущий пользователь организатором
+        const isOrganizer = user && event && user.id === event.organizer.id;
+        return isOrganizer ?
           (
             <>
               <button className="bg-[rgb(43_140_238/0.2)] rounded-lg p-3 text-center mb-4 w-full text-[rgb(43_140_238/1)]">
@@ -93,13 +175,21 @@ export default function EventPage(
               <button className="bg-[rgb(52_199_89/1)] text-white rounded-lg p-3 text-center mb-4 w-full">
                 Вы записаны
               </button>
-              <button onClick={() => { setSigned(false) }} className="w-full bg-transparent  text-white font-bold py-3 px-4 rounded-xl text-base h-12 flex items-center justify-center">
-                Отменить запись
+              <button
+                onClick={handleUnregister}
+                disabled={isLoading}
+                className="w-full bg-transparent text-white font-bold py-3 px-4 rounded-xl text-base h-12 flex items-center justify-center disabled:opacity-50"
+              >
+                {isLoading ? "Отменяем..." : "Отменить запись"}
               </button>
             </>
           ) : (
-            <button onClick={() => { setSigned(true) }} className="bg-[rgb(43_140_238/0.2)] text-white rounded-lg p-3 text-center mb-4 w-full">
-              Записаться на событие
+            <button
+              onClick={handleRegister}
+              disabled={isLoading}
+              className="bg-[rgb(43_140_238/0.2)] text-white rounded-lg p-3 text-center mb-4 w-full disabled:opacity-50"
+            >
+              {isLoading ? "Записываемся..." : "Записаться на событие"}
             </button>
           )
       })()}

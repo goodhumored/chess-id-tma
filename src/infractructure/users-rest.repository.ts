@@ -6,14 +6,26 @@ import {
 } from "../domain/user-repo.interface";
 import { httpClient } from "../lib/http-client";
 
+type CityDTO = {
+  id: number;
+  name: string;
+};
+
+type RoleDTO = {
+  id: number;
+  role: string;
+  permissions: number;
+};
+
 type UserOutDTO = {
   id: number;
   telegram_id: string;
   username: string | null;
   phone: string | null;
-  city_id: number | null;
-  role_id: number | null;
+  city: CityDTO | null;
+  role: RoleDTO | null;
   skill_level: string | null;
+  points: number;
 };
 
 export default class UsersRestRepository implements UsersRepository {
@@ -23,8 +35,8 @@ export default class UsersRestRepository implements UsersRepository {
       dto.telegram_id,
       dto.username,
       dto.phone,
-      dto.city_id,
-      dto.role_id,
+      dto.city ? { id: dto.city.id, name: dto.city.name } : null,
+      dto.role?.id ?? null,
       dto.skill_level,
     );
   }
@@ -64,6 +76,24 @@ export default class UsersRestRepository implements UsersRepository {
   async update(id: number, user: UserUpdate): Promise<User> {
     const data = await httpClient.put<UserOutDTO>(
       `/api/v1/users/id/${id}`,
+      user,
+    );
+    return this.mapDTOToUser(data);
+  }
+
+  async getCurrentUser(): Promise<User | null> {
+    try {
+      const data = await httpClient.get<UserOutDTO>("/api/v1/users/profile");
+      return this.mapDTOToUser(data);
+    } catch (error) {
+      console.error("Failed to fetch current user:", error);
+      return null;
+    }
+  }
+
+  async updateCurrentUser(user: UserUpdate): Promise<User> {
+    const data = await httpClient.put<UserOutDTO>(
+      "/api/v1/users/profile",
       user,
     );
     return this.mapDTOToUser(data);

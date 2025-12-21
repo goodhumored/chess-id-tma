@@ -4,40 +4,63 @@ const dateFormatter = new Intl.DateTimeFormat("ru-RU", {
   year: undefined,
 });
 
+export type EventOrganizer = {
+  id: number;
+  username: string | null;
+  telegram_id: string;
+};
+
+export type EventCity = {
+  id: number;
+  name: string;
+};
+
 export default class ChessEvent {
-  id: string;
+  id: number;
   title: string;
-  type: "tournament" | "training" | "meeting" | "lectures";
+  type: string | null;
   date: Date;
+  dateEnd: Date | null;
   location: string;
-  description: string;
-  organizer: string;
+  description: string | null;
+  organizer: EventOrganizer;
+  city: EventCity;
   participants: number;
-  maxParticipants: number;
+  maxParticipants: number | null;
   imageUrl: string;
+  status: string;
+  createdAt: Date;
 
   constructor(
-    id: string,
+    id: number,
     title: string,
-    type: "tournament" | "training" | "meeting" | "lectures",
+    type: string | null,
     date: Date,
+    dateEnd: Date | null,
     location: string,
-    description: string,
-    organizer: string,
+    description: string | null,
+    organizer: EventOrganizer,
+    city: EventCity,
     participants: number,
-    maxParticipants: number,
+    maxParticipants: number | null,
     imageUrl: string,
+    status: string,
+    createdAt: Date,
   ) {
     this.id = id;
     this.title = title;
     this.type = type;
     this.date = date;
+    this.dateEnd = dateEnd;
     this.location = location;
     this.description = description;
     this.organizer = organizer;
+    this.city = city;
     this.participants = participants;
     this.maxParticipants = maxParticipants;
     this.imageUrl = imageUrl;
+    this.status = status;
+    this.createdAt = createdAt;
   }
 
   dateString() {

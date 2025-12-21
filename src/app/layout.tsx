@@ -4,6 +4,7 @@ import "./globals.css";
 import { TelegramProvider } from "../components/TelegramProvider";
 import { AuthProvider } from "../components/AuthProvider";
 import AppBar from "../components/layout/AppBar";
+import BackButtonHandler from "../components/BackButtonHandler";
 
 const jakartaSans = Plus_Jakarta_Sans({
   // subsets: ["cyrillic-ext"],
@@ -43,6 +44,7 @@ export default function RootLayout({
       >
         <TelegramProvider>
           <AuthProvider>
+            <BackButtonHandler />
             {children}
             <AppBar />
           </AuthProvider>

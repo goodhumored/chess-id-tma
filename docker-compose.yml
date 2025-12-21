@@ -1,0 +1,12 @@
+services:
+  chessid_tma:
+    container_name: chessid_tma
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://212.34.141.4:8080}
+        NEXT_PUBLIC_API_SECRET: ${NEXT_PUBLIC_API_SECRET:-9f3c2e7a1d4b8a6f0c5e9d7a2b4f6e1c8a0d9b3e5f7c2a4e6d1b8f0a9c5}
+    ports:
+      - "3000:3000"
+    restart: unless-stopped

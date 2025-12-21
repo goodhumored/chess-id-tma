@@ -8,7 +8,7 @@ import Image from "next/image";
 import { cn } from "../lib/utils";
 import ChessEvent from "../domain/chess-event";
 import ChessEventsService from "../domain/chess-events-service";
-import ChessEventsMockRepository from "../infractructure/chess-events-mock.repository";
+import ChessEventsRestRepository from "../infractructure/chess-events-rest.repository";
 import EventCard from "../components/event-card";
 
 
@@ -21,7 +21,7 @@ const filters = {
 }
 
 export default function Home() {
-  const repo = new ChessEventsMockRepository();
+  const repo = new ChessEventsRestRepository();
   const service = new ChessEventsService(repo);
   const [events, setEvents] = useState<ChessEvent[]>([]);
   const [selected, setSelected] = useState<string>("all");
@@ -29,13 +29,34 @@ export default function Home() {
   // Используем AuthProvider для получения текущего пользователя
   const { user: profile, isLoading: authLoading } = useAuth();
 
-  useEffect(() => {
-    service
-      .findEvents(selected === "all" ? {} : { type: selected })
-      .then(setEvents);
-  }, [selected]);
+  // Используем Telegram WebApp для получения фото профиля
+  const { isReady, user: tgUser } = useTelegram();
 
-  const { isReady } = useTelegram();
+  useEffect(() => {
+    // Не загружаем события пока не загрузится профиль
+    if (authLoading) {
+      return;
+    }
+
+    const filters: { type?: string; city_id?: number; dateFrom?: Date } = {};
+
+    // Добавляем фильтр по типу события (если не "all")
+    if (selected !== "all") {
+      filters.type = selected;
+    }
+
+    // Добавляем фильтр по городу пользователя (если указан)
+    if (profile?.city_id) {
+      filters.city_id = profile.city_id;
+    }
+
+    // Не показываем события старше 1 дня
+    const oneDayAgo = new Date();
+    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+    filters.dateFrom = oneDayAgo;
+
+    service.findEvents(filters).then(setEvents);
+  }, [selected, profile, authLoading]);
 
   if (!isReady || authLoading) {
     return (
@@ -56,15 +77,19 @@ export default function Home() {
         </h1>
         <Link
           href="/profile"
-          className="block relative rounded-full overflow-hidden w-10 h-10"
+          className="block relative rounded-full overflow-hidden w-10 h-10 bg-gray-700"
         >
-          {profile && (
-            <Image fill alt="profile pic" src={profile.getAvatarUrl()} />
-          )}
+          {tgUser?.photo_url ? (
+            <Image fill alt="profile pic" src={tgUser.photo_url} />
+          ) : profile ? (
+            <div className="flex items-center justify-center w-full h-full text-white font-bold text-lg">
+              {profile.username?.[0]?.toUpperCase() || "?"}
+            </div>
+          ) : null}
         </Link>
       </div>
       {/* <SearchField value={searchValue} onChange={setSearchValue} placeholder="Найти" className="mb-5" /> */}
-      <div className="max-w-full overflow-x-scroll">
+      <div className="max-w-full overflow-x-scroll scrollbar-hidden">
         <Filters onChange={setSelected} filters={filters} />
       </div>
       <div className="mt-6 space-y-4 flex flex-col  max-w-3xl mx-auto">

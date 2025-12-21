@@ -18,6 +18,11 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 COPY . .
 
+# Build-time environment variables for static export
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_API_SECRET
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXT_PUBLIC_API_SECRET=${NEXT_PUBLIC_API_SECRET}
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN pnpm build
@@ -46,7 +51,7 @@ RUN mkdir .next
 RUN chown nextjs:nodejs .next
 
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
-COPY --chown=nextjs:nodejs next* ./
+COPY --chown=nextjs:nodejs next.config.mjs ./
 
 # RUN apk add curl
 # RUN apk add ca-certificates
