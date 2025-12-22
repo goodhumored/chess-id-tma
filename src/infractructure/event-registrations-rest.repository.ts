@@ -245,6 +245,25 @@ export default class EventRegistrationsRestRepository
     }
   }
 
+  async getEventParticipants(
+    eventId: number,
+    skip: number = 0,
+    limit: number = 100,
+  ): Promise<EventRegistration[]> {
+    try {
+      const data = await httpClient.get<EventRegistrationFullDTO[]>(
+        `/api/v1/event-registrations/event/${eventId}/participants?skip=${skip}&limit=${limit}`,
+      );
+      return data.map((dto) => this.mapFullDTOToRegistration(dto));
+    } catch (error) {
+      console.error(
+        `Failed to fetch participants for event ${eventId}:`,
+        error,
+      );
+      return [];
+    }
+  }
+
   async checkRegistration(userId: number, eventId: number): Promise<boolean> {
     try {
       await httpClient.get(

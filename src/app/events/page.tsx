@@ -10,6 +10,7 @@ import PersonIcon from '@/../public/person.svg';
 import { useEffect, useState } from "react";
 import ChessEvent from "../../domain/chess-event";
 import { useAuth } from "../../components/AuthProvider";
+import { SimpleUser } from "../../domain/event-registration";
 
 const dateFormatter = new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: 'long', year: undefined });
 
@@ -23,10 +24,27 @@ export default function EventPage(
   const registrationsRepo = new EventRegistrationsRestRepository();
 
   const [event, setEvent] = useState<ChessEvent | null>(null);
-  const [participants, setParticipants] = useState<string[]>([]);
+  const [participants, setParticipants] = useState<SimpleUser[]>([]);
+  const [participantsCount, setParticipantsCount] = useState(0);
   const [signed, setSigned] = useState(false);
   const [registrationId, setRegistrationId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Функция для загрузки участников
+  const loadParticipants = async (eventId: string) => {
+    try {
+      console.log("🔄 Loading participants for event:", eventId);
+      const registrations = await registrationsRepo.getEventParticipants(Number(eventId));
+      console.log("✅ Loaded registrations:", registrations);
+      const users = registrations.map(reg => reg.user).filter((u): u is SimpleUser => u !== undefined);
+      console.log("✅ Extracted users:", users);
+      setParticipants(users);
+      setParticipantsCount(users.length);
+      console.log("✅ Updated state - participants count:", users.length);
+    } catch (error) {
+      console.error("❌ Failed to load participants:", error);
+    }
+  };
 
   useEffect(() => {
     if (id === null) {
@@ -37,7 +55,8 @@ export default function EventPage(
         redirect('/404');
       }
       setEvent(_event);
-      setParticipants(Array.from({ length: _event.participants }, (_, i) => `https://i.pravatar.cc/150?img=${i + 1}`));
+      // Загружаем реальных участников
+      loadParticipants(id);
     });
   }, [id]);
 
@@ -76,6 +95,8 @@ export default function EventPage(
       });
       setSigned(true);
       setRegistrationId(registration.id);
+      // Обновляем список участников после успешной регистрации
+      await loadParticipants(id);
     } catch (error: any) {
       console.error("Failed to register for event:", error);
 
@@ -87,6 +108,8 @@ export default function EventPage(
           console.log("✅ Found existing registration:", registration);
           setSigned(true);
           setRegistrationId(registration.id);
+          // Обновляем список участников
+          await loadParticipants(id);
           // Не показываем ошибку если пользователь уже записан
           return;
         }
@@ -102,13 +125,15 @@ export default function EventPage(
   }
 
   async function handleUnregister() {
-    if (!registrationId) return;
+    if (!registrationId || !id) return;
 
     setIsLoading(true);
     try {
       await registrationsRepo.delete(registrationId);
       setSigned(false);
       setRegistrationId(null);
+      // Обновляем список участников после отмены регистрации
+      await loadParticipants(id);
     } catch (error) {
       console.error("Failed to unregister from event:", error);
       alert("Не удалось отменить запись");
@@ -136,29 +161,64 @@ export default function EventPage(
       </p>
       <h2 className="text-white text-xl font-bold mt-8">Участники</h2>
       <div className="flex items-center gap-4 mt-3">
-        <div className="flex -space-x-3">
-          {participants.slice(0, 3).map((p, i) => (
-            <div key={i} className="rounded-full size-10 overflow-hidden relative">
-              <Image src={p} alt={`participant ${i}`} fill />
+        {participantsCount > 0 ? (
+          <>
+            <div className="flex -space-x-3">
+              {participants.slice(0, 3).map((participant) => (
+                <div key={participant.id} className="rounded-full size-10 overflow-hidden text-center bg-gray-700 text-white flex items-center justify-center text-sm font-medium" title={participant.username || participant.telegram_id}>
+                  {participant.username?.[0]?.toUpperCase() || "?"}
+                </div>
+              ))}
+              {
+                participantsCount > 3 &&
+                (
+                  <div className="rounded-full size-10 overflow-hidden text-center bg-gray-700 text-white flex items-center justify-center text-sm font-medium">
+                    +{participantsCount - 3}
+                  </div>
+                )
+              }
             </div>
-          ))}
-          {
-            event.participants > 3 &&
-            (
-              <div className="rounded-full size-10 overflow-hidden text-center bg-gray-700 text-white flex items-center justify-center text-sm font-medium">
-                +{Math.floor(event.participants) - 3}
-              </div>
-            )
-          }
-        </div>
-        Записалось {Math.floor(event.participants)} из {event.maxParticipants} человек
+            <span>Записалось {participantsCount} из {event.maxParticipants || "∞"} человек</span>
+          </>
+        ) : (
+          <span className="text-gray-400">Пока никто не записался</span>
+        )}
       </div>
     </div>
 
     <div className="p-4 border-t border-white/10 font-bold">
       {(() => {
+        // Проверяем статус события
+        const now = new Date();
+        const eventStarted = event.date < now;
+        const eventEnded = event.dateEnd ? event.dateEnd < now : false;
+
         // Проверяем, является ли текущий пользователь организатором
         const isOrganizer = user && event && user.id === event.organizer.id;
+
+        // Если событие закончилось или идёт
+        if (eventEnded && !isOrganizer) {
+          return (
+            <button
+              disabled
+              className="bg-gray-600 text-gray-300 rounded-lg p-3 text-center mb-4 w-full cursor-not-allowed opacity-60"
+            >
+              Событие завершено
+            </button>
+          );
+        }
+
+        if (eventStarted && !eventEnded && !isOrganizer) {
+          return (
+            <button
+              disabled
+              className="bg-gray-600 text-gray-300 rounded-lg p-3 text-center mb-4 w-full cursor-not-allowed opacity-60"
+            >
+              Событие уже идёт
+            </button>
+          );
+        }
+
         return isOrganizer ?
           (
             <>

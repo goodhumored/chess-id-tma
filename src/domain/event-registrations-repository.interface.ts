@@ -37,6 +37,11 @@ export default interface EventRegistrationsRepository {
     skip?: number,
     limit?: number,
   ): Promise<EventRegistration[]>;
+  getEventParticipants(
+    eventId: number,
+    skip?: number,
+    limit?: number,
+  ): Promise<EventRegistration[]>;
   checkRegistration(userId: number, eventId: number): Promise<boolean>;
   getEventStats(eventId: number): Promise<unknown>;
 }
