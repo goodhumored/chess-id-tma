@@ -5,20 +5,38 @@ import EventIcon from '@/../public/event.svg';
 import ProfileIcon from '@/../public/account_circle.svg';
 import Image from "next/image";
 import { cn } from "../../lib/utils";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
+import { useRole } from "../../hooks/useRole";
 
-const navigation = [
+const baseNavigation = [
   { name: 'События', href: '/', icon: EventIcon },
   { name: 'Мои События', href: '/my-events', icon: CalendarIcon },
   { name: 'Профиль', href: '/profile', icon: ProfileIcon },
-]
+];
+
 export default function AppBar() {
+  const { canAccessAdmin, isLoading } = useRole();
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Динамически добавляем админку для администраторов
+  const navigation = useMemo(() => {
+    if (isLoading) return baseNavigation;
+
+    if (canAccessAdmin()) {
+      return [
+        ...baseNavigation.slice(0, 2), // События и Мои События
+        { name: 'Админка', href: '/admin', icon: ProfileIcon }, // Админка между "Мои События" и "Профиль"
+        baseNavigation[2], // Профиль
+      ];
+    }
+    return baseNavigation;
+  }, [canAccessAdmin, isLoading]);
+
   useEffect(() => {
     const route = typeof window !== 'undefined' ? window.location.pathname : '/';
     const index = navigation.findIndex(item => item.href === route);
     Promise.resolve().then(() => setCurrentIndex(index));
-  }, []);
+  }, [navigation]);
 
   return (
     <nav className="bottom-0 left-0 right-0 border-t-1 border-t-gray-800 bg-background fixed z-50">

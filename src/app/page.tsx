@@ -25,6 +25,7 @@ export default function Home() {
   const service = new ChessEventsService(repo);
   const [events, setEvents] = useState<ChessEvent[]>([]);
   const [selected, setSelected] = useState<string>("all");
+  const [eventsLoading, setEventsLoading] = useState(true);
 
   // Используем AuthProvider для получения текущего пользователя
   const { user: profile, isLoading: authLoading } = useAuth();
@@ -37,6 +38,9 @@ export default function Home() {
     if (authLoading) {
       return;
     }
+
+    // Устанавливаем loading state перед загрузкой
+    setEventsLoading(true);
 
     const filters: { type?: string; city_id?: number; dateFrom?: Date } = {};
 
@@ -55,7 +59,10 @@ export default function Home() {
     oneDayAgo.setDate(oneDayAgo.getDate() - 1);
     filters.dateFrom = oneDayAgo;
 
-    service.findEvents(filters).then(setEvents);
+    service.findEvents(filters).then((loadedEvents) => {
+      setEvents(loadedEvents);
+      setEventsLoading(false);
+    });
   }, [selected, profile, authLoading]);
 
   if (!isReady || authLoading) {
@@ -93,9 +100,31 @@ export default function Home() {
         <Filters onChange={setSelected} filters={filters} />
       </div>
       <div className="mt-6 space-y-4 flex flex-col  max-w-3xl mx-auto">
-        {events.map((event, i) => (
-          <EventCard key={i} event={event} />
-        ))}
+        {eventsLoading ? (
+          // Показываем skeleton loader пока события загружаются
+          <div className="flex flex-col gap-4">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="bg-slate-800/50 rounded-xl p-4 animate-pulse"
+              >
+                <div className="h-6 bg-slate-700 rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-slate-700 rounded w-1/2 mb-2"></div>
+                <div className="h-4 bg-slate-700 rounded w-2/3"></div>
+              </div>
+            ))}
+          </div>
+        ) : events.length > 0 ? (
+          // Показываем события когда они загружены
+          events.map((event, i) => (
+            <EventCard key={i} event={event} />
+          ))
+        ) : (
+          // Показываем сообщение если событий нет
+          <div className="text-center py-8">
+            <p className="text-slate-400">Нет событий для отображения</p>
+          </div>
+        )}
       </div>
     </div>
   )

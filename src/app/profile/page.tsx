@@ -53,6 +53,8 @@ export default function Profile() {
   const [upcomingEvents, setUpcomingEvents] = useState<ChessEvent[]>([]);
   const [pastEvents, setPastEvents] = useState<ChessEvent[]>([]);
   const [showCityModal, setShowCityModal] = useState(false);
+  const [showSkillModal, setShowSkillModal] = useState(false);
+  const [showPhoneModal, setShowPhoneModal] = useState(false);
   const [localProfile, setLocalProfile] = useState(profile);
 
   useEffect(() => {
@@ -104,6 +106,44 @@ export default function Profile() {
     }
   };
 
+  const handleSkillLevelChange = async (skillLevel: string) => {
+    if (!localProfile) return;
+
+    try {
+      const userRepo = new UsersRestRepository();
+      const userService = new UsersService(userRepo);
+
+      const updatedUser = await userService.updateCurrentUser({
+        skill_level: skillLevel,
+      });
+
+      setLocalProfile(updatedUser);
+      setShowSkillModal(false);
+    } catch (error) {
+      console.error("Failed to update skill level:", error);
+      alert("Не удалось изменить уровень игры. Попробуйте ещё раз.");
+    }
+  };
+
+  const handlePhoneChange = async (phone: string) => {
+    if (!localProfile) return;
+
+    try {
+      const userRepo = new UsersRestRepository();
+      const userService = new UsersService(userRepo);
+
+      const updatedUser = await userService.updateCurrentUser({
+        phone: phone.trim() || null,
+      });
+
+      setLocalProfile(updatedUser);
+      setShowPhoneModal(false);
+    } catch (error) {
+      console.error("Failed to update phone:", error);
+      alert("Не удалось изменить телефон. Попробуйте ещё раз.");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -120,6 +160,18 @@ export default function Profile() {
       <CitySelectionModal
         isOpen={showCityModal}
         onCitySelected={handleCityChange}
+      />
+      <SkillLevelModal
+        isOpen={showSkillModal}
+        currentLevel={localProfile.skill_level}
+        onSkillSelected={handleSkillLevelChange}
+        onClose={() => setShowSkillModal(false)}
+      />
+      <PhoneModal
+        isOpen={showPhoneModal}
+        currentPhone={localProfile.phone}
+        onPhoneSubmit={handlePhoneChange}
+        onClose={() => setShowPhoneModal(false)}
       />
       <div className="flex p-4 @container">
         <div className="flex w-full flex-col gap-4 @[520px]:flex-row @[520px]:justify-between @[520px]:items-center">
@@ -149,14 +201,26 @@ export default function Profile() {
       <div className="flex flex-wrap gap-3 px-4 py-3">
         <div className="flex min-w-[111px] flex-1 basis-[fit-content] flex-col gap-1 rounded-xl bg-slate-800/50 p-3 items-start">
           <p className="text-white tracking-light text-2xl font-bold leading-tight">
-            {localProfile.skill_level || "N/A"}
+            {localProfile.skill_level || "Не указан"}
           </p>
           <div className="flex items-center gap-2">
             <p className="text-slate-400 text-sm font-normal leading-normal">
-              Уровень мастерства
+              Уровень игры
             </p>
           </div>
         </div>
+        {localProfile.phone && (
+          <div className="flex min-w-[111px] flex-1 basis-[fit-content] flex-col gap-1 rounded-xl bg-slate-800/50 p-3 items-start">
+            <p className="text-white tracking-light text-lg font-bold leading-tight">
+              {localProfile.phone}
+            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-slate-400 text-sm font-normal leading-normal">
+                Телефон
+              </p>
+            </div>
+          </div>
+        )}
       </div>
       {/* <!-- Tabs --> */}
       <Tabs className="sticky top-[68px] z-10 pb-3 " tabs={["Мои События", "История", "Настройки"]} >
@@ -198,11 +262,153 @@ export default function Profile() {
                 Изменить
               </button>
             </div>
+
+            <div className="flex items-center justify-between p-4 rounded-xl bg-slate-800/50">
+              <div className="flex flex-col gap-1">
+                <p className="text-white text-base font-medium">Уровень игры</p>
+                <p className="text-slate-400 text-sm">{localProfile.skill_level || "Не указан"}</p>
+              </div>
+              <button
+                onClick={() => setShowSkillModal(true)}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                Изменить
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between p-4 rounded-xl bg-slate-800/50">
+              <div className="flex flex-col gap-1">
+                <p className="text-white text-base font-medium">Телефон</p>
+                <p className="text-slate-400 text-sm">{localProfile.phone || "Не указан"}</p>
+              </div>
+              <button
+                onClick={() => setShowPhoneModal(true)}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                {localProfile.phone ? "Изменить" : "Добавить"}
+              </button>
+            </div>
           </div>
         </div>
       </Tabs>
     </main >
   ) : <></>;
+}
+
+function SkillLevelModal({
+  isOpen,
+  currentLevel,
+  onSkillSelected,
+  onClose,
+}: {
+  isOpen: boolean;
+  currentLevel: string | null;
+  onSkillSelected: (level: string) => void;
+  onClose: () => void;
+}) {
+  const [selectedLevel, setSelectedLevel] = useState(currentLevel);
+
+  const SKILL_LEVELS = [
+    { value: "новичок", label: "Новичок", description: "Только начинаю изучать шахматы" },
+    { value: "любитель", label: "Любитель", description: "Играю регулярно, знаю основные стратегии" },
+    { value: "профессионал", label: "Профессионал", description: "Участвую в турнирах, имею разряд" },
+  ];
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm pointer-events-auto">
+      <div className="bg-slate-900 rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl border border-slate-700">
+        <h2 className="text-white text-2xl font-bold mb-2">Уровень игры ♟️</h2>
+        <p className="text-slate-400 text-base mb-6">
+          Выберите ваш уровень игры в шахматы
+        </p>
+
+        <div className="space-y-3 mb-6">
+          {SKILL_LEVELS.map((level) => (
+            <button
+              key={level.value}
+              onClick={() => setSelectedLevel(level.value)}
+              className={`w-full text-left px-4 py-4 rounded-lg transition-colors ${
+                selectedLevel === level.value
+                  ? "bg-blue-500/20 border-2 border-blue-500"
+                  : "bg-slate-800 border-2 border-transparent hover:bg-slate-700"
+              }`}
+            >
+              <div className="text-white font-semibold mb-1">{level.label}</div>
+              <div className="text-slate-400 text-sm">{level.description}</div>
+            </button>
+          ))}
+        </div>
+
+        <div className="flex space-x-3">
+          <button
+            onClick={onClose}
+            className="flex-1 bg-slate-700 text-white font-bold py-3 px-4 rounded-xl text-base hover:bg-slate-600 transition-colors"
+          >
+            Отмена
+          </button>
+          <button
+            onClick={() => selectedLevel && onSkillSelected(selectedLevel)}
+            disabled={!selectedLevel}
+            className="flex-1 bg-blue-500 text-white font-bold py-3 px-4 rounded-xl text-base disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
+          >
+            Сохранить
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PhoneModal({
+  isOpen,
+  currentPhone,
+  onPhoneSubmit,
+  onClose,
+}: {
+  isOpen: boolean;
+  currentPhone: string | null;
+  onPhoneSubmit: (phone: string) => void;
+  onClose: () => void;
+}) {
+  const [phone, setPhone] = useState(currentPhone || "");
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm pointer-events-auto">
+      <div className="bg-slate-900 rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl border border-slate-700">
+        <h2 className="text-white text-2xl font-bold mb-2">Контактный телефон 📞</h2>
+        <p className="text-slate-400 text-base mb-6">
+          Организаторы смогут связаться с вами при необходимости
+        </p>
+
+        <input
+          type="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="+7 (___) ___-__-__"
+          className="w-full bg-slate-800 text-white px-4 py-3 rounded-lg mb-6 border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+        />
+
+        <div className="flex space-x-3">
+          <button
+            onClick={onClose}
+            className="flex-1 bg-slate-700 text-white font-bold py-3 px-4 rounded-xl text-base hover:bg-slate-600 transition-colors"
+          >
+            Отмена
+          </button>
+          <button
+            onClick={() => onPhoneSubmit(phone)}
+            className="flex-1 bg-blue-500 text-white font-bold py-3 px-4 rounded-xl text-base hover:bg-blue-600 transition-colors"
+          >
+            Сохранить
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function EventCard({ event }: { event: ChessEvent }) {

@@ -12,7 +12,7 @@ import { User } from "../domain/user-repo.interface";
 import UsersService from "../domain/user-service";
 import UsersRestRepository from "../infractructure/users-rest.repository";
 import { authService } from "../services/auth.service";
-import CitySelectionModal from "./CitySelectionModal";
+import OnboardingModal from "./OnboardingModal";
 
 interface AuthContextType {
   user: User | null;
@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const { user: tgUser, isReady, webApp } = useTelegram();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showCitySelection, setShowCitySelection] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     async function authenticateUser() {
@@ -85,10 +85,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           console.log("✅ Step 3: User profile loaded:", authenticatedUser);
           setUser(authenticatedUser);
 
-          // ШАГ 4: Проверяем, нужно ли выбрать город
-          if (!authenticatedUser.city_id) {
-            console.log("ℹ️ Step 4: User has no city, showing city selection");
-            setShowCitySelection(true);
+          // ШАГ 4: Проверяем, нужно ли пройти onboarding (нет города или уровня игры)
+          if (!authenticatedUser.city_id || !authenticatedUser.skill_level) {
+            console.log(
+              "ℹ️ Step 4: User needs onboarding (city or skill_level missing), showing onboarding modal"
+            );
+            setShowOnboarding(true);
           }
         } else {
           console.error("❌ Step 3 failed: User not found after authentication");
@@ -103,25 +105,33 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     authenticateUser();
   }, [isReady, tgUser, webApp]);
 
-  const handleCitySelected = async (cityId: number) => {
+  const handleOnboardingComplete = async (data: {
+    cityId: number;
+    skillLevel: string;
+    phone?: string;
+  }) => {
     if (!user) return;
 
     try {
-      console.log(`🔄 Updating user with city_id=${cityId}`);
+      console.log("🔄 Updating user profile with onboarding data:", data);
       const userRepo = new UsersRestRepository();
       const userService = new UsersService(userRepo);
 
       const updatedUser = await userService.updateCurrentUser({
-        city_id: cityId,
+        city_id: data.cityId,
+        skill_level: data.skillLevel,
+        phone: data.phone,
       });
 
-      console.log("✅ User updated with city:", updatedUser);
+      console.log("✅ User profile updated:", updatedUser);
       setUser(updatedUser);
-      setShowCitySelection(false);
-      console.log("🚪 City selection modal closed");
+      setShowOnboarding(false);
+      console.log("🚪 Onboarding modal closed");
     } catch (error) {
-      console.error("❌ Failed to update user city:", error);
-      alert("Не удалось сохранить город. Попробуйте ещё раз.");
+      console.error("❌ Failed to update user profile:", error);
+      alert(
+        "Не удалось сохранить данные. Проверьте соединение и попробуйте ещё раз."
+      );
     }
   };
 
@@ -147,10 +157,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   // Debug: логируем состояние модального окна
   console.log("🔍 AuthProvider render:", {
-    showCitySelection,
+    showOnboarding,
     hasUser: !!user,
     hasCityId: user?.city_id,
-    isLoading
+    hasSkillLevel: !!user?.skill_level,
+    isLoading,
   });
 
   return (
@@ -161,9 +172,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         isAuthenticated: user !== null,
       }}
     >
-      <CitySelectionModal
-        isOpen={showCitySelection}
-        onCitySelected={handleCitySelected}
+      <OnboardingModal
+        isOpen={showOnboarding}
+        onComplete={handleOnboardingComplete}
       />
       {children}
     </AuthContext.Provider>

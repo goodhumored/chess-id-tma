@@ -9,6 +9,7 @@ import { SimpleEvent } from "../../domain/event-registration";
 import EventRegistrationsRestRepository from "../../infractructure/event-registrations-rest.repository";
 import { useAuth } from "../../components/AuthProvider";
 import { useTelegram } from "../../components/TelegramProvider";
+import { useRole } from "../../hooks/useRole";
 
 function simpleEventToChessEvent(simpleEvent: SimpleEvent): ChessEvent {
   const organizer: EventOrganizer = {
@@ -45,6 +46,7 @@ export default function MyEvents() {
   const [isLoading, setIsLoading] = useState(true);
   const { user: profile } = useAuth();
   const { user: tgUser } = useTelegram();
+  const { canCreateEvent } = useRole();
 
   useEffect(() => {
     async function fetchMyEvents() {
@@ -88,7 +90,7 @@ export default function MyEvents() {
   }
 
   return (
-    <div className="p-6 relative">
+    <div className="p-6 relative pb-24">
       <div className="flex items-center justify-between mb-5">
         <h1 className="text-3xl font-bold tracking-tight text-white">
           Мои события
@@ -106,6 +108,31 @@ export default function MyEvents() {
           ) : null}
         </Link>
       </div>
+
+      {/* Кнопка создания события для партнёров и админов */}
+      {canCreateEvent() && (
+        <Link
+          href="/events/create"
+          className="block w-full mb-6 p-4 bg-blue-500 hover:bg-blue-600 rounded-xl transition-colors"
+        >
+          <div className="flex items-center justify-center gap-2 text-white font-bold">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <span>Создать событие</span>
+          </div>
+        </Link>
+      )}
+
       <div className="mt-6 space-y-4 flex flex-col max-w-3xl mx-auto">
         {events.map((event) => (
           <EventCard key={event.id} event={event} />
