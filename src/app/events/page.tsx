@@ -29,6 +29,7 @@ export default function EventPage(
   const [signed, setSigned] = useState(false);
   const [registrationId, setRegistrationId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showParticipantsModal, setShowParticipantsModal] = useState(false);
 
   // Функция для загрузки участников
   const loadParticipants = async (eventId: string) => {
@@ -159,29 +160,56 @@ export default function EventPage(
       <p className="mt-3 text-lg leading-7 text-gray-300">
         {event.description}
       </p>
-      <h2 className="text-white text-xl font-bold mt-8">Участники</h2>
-      <div className="flex items-center gap-4 mt-3">
+      <div className="flex items-center justify-between mt-8">
+        <h2 className="text-white text-xl font-bold">Участники</h2>
+        {participantsCount > 0 && (
+          <button 
+            onClick={() => setShowParticipantsModal(true)}
+            className="text-blue-400 text-sm hover:text-blue-300 transition-colors"
+          >
+            Показать всех
+          </button>
+        )}
+      </div>
+      <div 
+        className="flex items-center gap-4 mt-3 cursor-pointer hover:opacity-80 transition-opacity"
+        onClick={() => participantsCount > 0 && setShowParticipantsModal(true)}
+      >
         {participantsCount > 0 ? (
           <>
             <div className="flex -space-x-3">
-              {participants.slice(0, 3).map((participant) => (
-                <div key={participant.id} className="rounded-full size-10 overflow-hidden text-center bg-gray-700 text-white flex items-center justify-center text-sm font-medium" title={participant.username || participant.telegram_id}>
-                  {participant.username?.[0]?.toUpperCase() || "?"}
+              {participants.slice(0, 5).map((participant) => (
+                <div 
+                  key={participant.id} 
+                  className="relative rounded-full size-12 overflow-hidden border-2 border-gray-800 bg-gray-700 hover:z-10 transition-transform hover:scale-110" 
+                  title={participant.username || `User ${participant.telegram_id}`}
+                >
+                  <Image
+                    src={`https://i.pravatar.cc/150?img=${participant.id}`}
+                    alt={participant.username || `User ${participant.telegram_id}`}
+                    fill
+                    className="object-cover"
+                  />
                 </div>
               ))}
               {
-                participantsCount > 3 &&
+                participantsCount > 5 &&
                 (
-                  <div className="rounded-full size-10 overflow-hidden text-center bg-gray-700 text-white flex items-center justify-center text-sm font-medium">
-                    +{participantsCount - 3}
+                  <div className="rounded-full size-12 overflow-hidden text-center bg-blue-600 text-white flex items-center justify-center text-sm font-bold border-2 border-gray-800">
+                    +{participantsCount - 5}
                   </div>
                 )
               }
             </div>
-            <span>Записалось {participantsCount} из {event.maxParticipants || "∞"} человек</span>
+            <div className="flex flex-col">
+              <span className="text-white font-medium">Записалось {participantsCount} {event.maxParticipants && `из ${event.maxParticipants}`}</span>
+              <span className="text-gray-400 text-sm">
+                {participantsCount === 1 ? 'участник' : participantsCount < 5 ? 'участника' : 'участников'}
+              </span>
+            </div>
           </>
         ) : (
-          <span className="text-gray-400">Пока никто не записался</span>
+          <span className="text-gray-400">Пока никто не записался. Будьте первым!</span>
         )}
       </div>
     </div>
@@ -254,6 +282,59 @@ export default function EventPage(
           )
       })()}
     </div>
+
+    {/* Модальное окно со списком участников */}
+    {showParticipantsModal && (
+      <div 
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center"
+        onClick={() => setShowParticipantsModal(false)}
+      >
+        <div 
+          className="bg-gray-900 rounded-t-3xl w-full max-w-2xl max-h-[80vh] overflow-hidden animate-slide-up"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="sticky top-0 bg-gray-900 border-b border-gray-800 p-4 flex items-center justify-between">
+            <h3 className="text-white text-xl font-bold">Участники ({participantsCount})</h3>
+            <button 
+              onClick={() => setShowParticipantsModal(false)}
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="overflow-y-auto max-h-[calc(80vh-80px)] p-4">
+            <div className="space-y-3">
+              {participants.map((participant, index) => (
+                <div 
+                  key={participant.id}
+                  className="flex items-center gap-4 p-3 bg-gray-800/50 rounded-xl hover:bg-gray-800 transition-colors"
+                >
+                  <div className="relative rounded-full size-12 overflow-hidden bg-gray-700 flex-shrink-0">
+                    <Image
+                      src={`https://i.pravatar.cc/150?img=${participant.id}`}
+                      alt={participant.username || `User ${participant.telegram_id}`}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-white font-medium truncate">
+                      {participant.username || `User ${participant.telegram_id}`}
+                    </div>
+                    <div className="text-gray-400 text-sm">
+                      Участник #{index + 1}
+                    </div>
+                  </div>
+                  {user && user.id === participant.id && (
+                    <div className="text-blue-400 text-sm font-medium">Вы</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
   </main>) : <></>;
 }
 

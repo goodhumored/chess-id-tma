@@ -10,7 +10,7 @@ import ChessEventsRestRepository from "../../../../../infractructure/chess-event
 export default function EditEventPage() {
   const router = useRouter();
   const params = useParams();
-  const eventId = params.id as string;
+  const eventId = params['id'] as string;
   const { canAccessAdmin, isLoading, isAuthenticated, getRoleName } =
     useRole();
   const [event, setEvent] = useState<ChessEvent | null>(null);
@@ -36,7 +36,7 @@ export default function EditEventPage() {
     }
   };
 
-  const handleSuccess = (updatedEvent: ChessEvent) => {
+  const handleSuccess = (_updatedEvent: ChessEvent) => {
     console.log("✅ Event updated successfully, redirecting...");
     router.push("/admin");
   };

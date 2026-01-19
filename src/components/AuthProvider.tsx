@@ -120,7 +120,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const updatedUser = await userService.updateCurrentUser({
         city_id: data.cityId,
         skill_level: data.skillLevel,
-        phone: data.phone,
+        phone: data.phone || null,
       });
 
       console.log("✅ User profile updated:", updatedUser);

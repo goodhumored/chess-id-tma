@@ -73,11 +73,19 @@ export default function OnboardingModal({
 
   const handleComplete = () => {
     if (selectedCityId && selectedSkillLevel) {
-      onComplete({
+      const trimmedPhone = phone.trim();
+      const data: {
+        cityId: number;
+        skillLevel: string;
+        phone?: string;
+      } = {
         cityId: selectedCityId,
         skillLevel: selectedSkillLevel,
-        phone: phone.trim() || undefined,
-      });
+      };
+      if (trimmedPhone) {
+        data.phone = trimmedPhone;
+      }
+      onComplete(data);
     }
   };
 

@@ -34,7 +34,7 @@ export default function AppBar() {
 
   useEffect(() => {
     const route = typeof window !== 'undefined' ? window.location.pathname : '/';
-    const index = navigation.findIndex(item => item.href === route);
+    const index = navigation.findIndex(item => item?.href === route);
     Promise.resolve().then(() => setCurrentIndex(index));
   }, [navigation]);
 
@@ -45,7 +45,7 @@ export default function AppBar() {
         {/*   width: (100 / navigation.length).toString() + "%", */}
         {/*   left: (currentIndex * (100 / navigation.length)).toString() + "%" */}
         {/* }} className="absolute h-3"></div> */}
-        {navigation.map((item, i) => (
+        {navigation.map((item, i) => item && (
           <a key={i} className="relative flex flex-col items-center justify-center py-2 px-4 transition-all" href={item.href}>
             <div className="relative mb-1.5" style={{ width: "24px", height: "24px" }}>
               <Image className={cn(`w-full h-full transition-all`, currentIndex == i ? "" : "grayscale-100")} src={item.icon} alt={item.name} />
