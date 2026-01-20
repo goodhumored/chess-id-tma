@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTelegram } from "../components/TelegramProvider";
 import { useAuth } from "../components/AuthProvider";
+import { useRole } from "../hooks/useRole";
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "../lib/utils";
@@ -32,6 +33,9 @@ export default function Home() {
 
   // Используем Telegram WebApp для получения фото профиля
   const { isReady, user: tgUser } = useTelegram();
+
+  // Проверяем права на создание событий
+  const { canCreateEvent } = useRole();
 
   useEffect(() => {
     // Не загружаем события пока не загрузится профиль
@@ -99,6 +103,31 @@ export default function Home() {
       <div className="max-w-full overflow-x-scroll scrollbar-hidden">
         <Filters onChange={setSelected} filters={filters} />
       </div>
+
+      {/* Кнопка создания события для партнёров и админов */}
+      {canCreateEvent() && (
+        <Link
+          href="/events/create"
+          className="block w-full mt-6 mb-4 p-4 bg-blue-500 hover:bg-blue-600 rounded-xl transition-colors max-w-3xl mx-auto"
+        >
+          <div className="flex items-center justify-center gap-2 text-white font-bold">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <span>Создать событие</span>
+          </div>
+        </Link>
+      )}
+
       <div className="mt-6 space-y-4 flex flex-col  max-w-3xl mx-auto">
         {eventsLoading ? (
           // Показываем skeleton loader пока события загружаются
