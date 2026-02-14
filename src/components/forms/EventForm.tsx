@@ -6,14 +6,21 @@ import ChessEvent from "../../domain/chess-event";
 import City from "../../domain/city";
 import CitiesRestRepository from "../../infractructure/cities-rest.repository";
 import ChessEventsRestRepository from "../../infractructure/chess-events-rest.repository";
-import ImageUploader from "../ImageUploader";
+import ImageUploader from "../forms/ImageUploader";
 import { useAuth } from "../AuthProvider";
+import Select from "./Select";
 
 const EVENT_TYPES = [
   { value: "tournament", label: "Турнир" },
   { value: "training", label: "Тренировка" },
   { value: "meeting", label: "Встреча" },
   { value: "lectures", label: "Лекция" },
+];
+
+const SKILL_LEVELS = [
+  { value: "Newbie", label: "Новичок" },
+  { value: "Nonpro", label: "Любитель" },
+  { value: "Pro", label: "Профессионал" },
 ];
 
 interface EventFormProps {
@@ -50,6 +57,7 @@ export default function EventForm({
   const [limitParticipants, setLimitParticipants] = useState<string>(
     event?.maxParticipants?.toString() || ""
   );
+  const [skillLevel, setSkillLevel] = useState<string>("Newbie");
   const [imageUrl, setImageUrl] = useState(event?.imageUrl || "");
 
   // Load cities
@@ -100,15 +108,16 @@ export default function EventForm({
         organizer_id: user.id,
         city_id: cityId,
         title: title.trim(),
-        description: description.trim() || null,
-        event_type: eventType || null,
+        description: description.trim() || "",
+        event_type: eventType || "meeting",
         datetime_start: new Date(dateStart).toISOString(),
         datetime_end: dateEnd ? new Date(dateEnd).toISOString() : null,
         address: address.trim(),
         limit_participants: limitParticipants
           ? parseInt(limitParticipants)
           : null,
-        status: "active",
+        skill_level: skillLevel,
+        image_url: imageUrl || null,
       };
 
       let createdEvent: ChessEvent;
@@ -161,28 +170,20 @@ export default function EventForm({
         />
       </div>
 
-      {/* Тип события */}
-      <div className="flex flex-col gap-2">
-        <label className="text-white text-base font-medium">Тип события</label>
-        <select
-          value={eventType}
-          onChange={(e) => setEventType(e.target.value)}
-          className="w-full bg-slate-800 text-white px-4 py-3 rounded-lg border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none cursor-pointer"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'right 1rem center',
-            backgroundSize: '12px'
-          }}
-        >
-          <option value="" className="bg-slate-900">Не указан</option>
-          {EVENT_TYPES.map((type) => (
-            <option key={type.value} value={type.value} className="bg-slate-900">
-              {type.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      <Select
+        label="Тип события"
+        value={eventType}
+        onChange={setEventType}
+        options={EVENT_TYPES}
+        placeholder="Не указан"
+      />
+
+      <Select
+        label="Уровень игроков"
+        value={skillLevel}
+        onChange={setSkillLevel}
+        options={SKILL_LEVELS}
+      />
 
       {/* Дата и время начала */}
       <div className="flex flex-col gap-2">
@@ -217,7 +218,13 @@ export default function EventForm({
         <select
           value={cityId || ""}
           onChange={(e) => setCityId(parseInt(e.target.value))}
-          className="w-full bg-slate-800 text-white px-4 py-3 rounded-lg border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+          className="w-full bg-slate-800 text-white px-4 py-3 rounded-lg border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors appearance-none cursor-pointer"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'right 1rem center',
+            backgroundSize: '12px'
+          }}
           required
         >
           <option value="">Выберите город</option>

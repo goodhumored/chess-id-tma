@@ -19,13 +19,15 @@ export class HttpClient {
     const url = `${this.baseURL}${endpoint}`;
 
     const headers: Record<string, string> = {
-      "Content-Type": "application/json",
+      // Не устанавливаем Content-Type для FormData - браузер сам его установит
+      // "Content-Type": "application/json",
     };
 
     if (this.secret) {
       headers["X-API-Secret"] = this.secret;
     }
 
+    // Проверяем, есть ли в options.headers какие-либо заголовки
     if (options?.headers) {
       Object.entries(options.headers).forEach(([key, value]) => {
         if (typeof value === "string") {
@@ -39,7 +41,10 @@ export class HttpClient {
 
       const response = await fetch(url, {
         ...options,
-        headers,
+        headers: {
+          ...headers,
+          ...options?.headers, // Позволяем переопределять заголовки из options
+        },
         credentials: "include", // Отправляем cookies с каждым запросом
       });
 
@@ -66,9 +71,24 @@ export class HttpClient {
     data?: unknown,
     options?: RequestInit,
   ): Promise<T> {
+    // Если данные являются FormData, не преобразуем их в JSON
+    if (data instanceof FormData) {
+      return this.request<T>(endpoint, {
+        ...options,
+        method: "POST",
+        body: data,
+        // Не устанавливаем Content-Type, браузер сам это сделает
+      });
+    }
+    
+    // Для обычных данных используем JSON
     return this.request<T>(endpoint, {
       ...options,
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+      },
       body: JSON.stringify(data),
     });
   }
@@ -78,9 +98,24 @@ export class HttpClient {
     data?: unknown,
     options?: RequestInit,
   ): Promise<T> {
+    // Если данные являются FormData, не преобразуем их в JSON
+    if (data instanceof FormData) {
+      return this.request<T>(endpoint, {
+        ...options,
+        method: "PUT",
+        body: data,
+        // Не устанавливаем Content-Type, браузер сам это сделает
+      });
+    }
+    
+    // Для обычных данных используем JSON
     return this.request<T>(endpoint, {
       ...options,
       method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+      },
       body: JSON.stringify(data),
     });
   }

@@ -16,12 +16,13 @@ export default function AdminPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<ChessEvent | null>(null);
 
-  // Load all events
+  const hasAdminAccess = canAccessAdmin();
+
   useEffect(() => {
-    if (!isLoading && canAccessAdmin()) {
+    if (!isLoading && hasAdminAccess) {
       loadEvents();
     }
-  }, [isLoading]);
+  }, [isLoading, hasAdminAccess]);
 
   const loadEvents = async () => {
     setEventsLoading(true);

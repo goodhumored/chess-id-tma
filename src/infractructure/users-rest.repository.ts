@@ -5,6 +5,7 @@ import {
   UsersRepository,
 } from "../domain/user-repo.interface";
 import { httpClient } from "../lib/http-client";
+import { toApiSkillLevel, toDisplaySkillLevel } from "../lib/skill-level";
 
 type CityDTO = {
   id: number;
@@ -37,8 +38,28 @@ export default class UsersRestRepository implements UsersRepository {
       dto.phone,
       dto.city ? { id: dto.city.id, name: dto.city.name } : null,
       dto.role?.id ?? null,
-      dto.skill_level,
+      toDisplaySkillLevel(dto.skill_level),
     );
+  }
+
+  private mapUserUpdateToApi(user: UserUpdate): UserUpdate {
+    if (user.skill_level === undefined) {
+      return user;
+    }
+    return {
+      ...user,
+      skill_level: toApiSkillLevel(user.skill_level),
+    };
+  }
+
+  private mapUserCreateToApi(user: UserCreate): UserCreate {
+    if (user.skill_level === undefined) {
+      return user;
+    }
+    return {
+      ...user,
+      skill_level: toApiSkillLevel(user.skill_level),
+    };
   }
 
   async findById(id: number): Promise<User | null> {
@@ -69,14 +90,16 @@ export default class UsersRestRepository implements UsersRepository {
   }
 
   async create(user: UserCreate): Promise<User> {
-    const data = await httpClient.post<UserOutDTO>("/api/v1/users/", user);
+    const apiUser = this.mapUserCreateToApi(user);
+    const data = await httpClient.post<UserOutDTO>("/api/v1/users/", apiUser);
     return this.mapDTOToUser(data);
   }
 
   async update(id: number, user: UserUpdate): Promise<User> {
+    const apiUser = this.mapUserUpdateToApi(user);
     const data = await httpClient.put<UserOutDTO>(
       `/api/v1/users/id/${id}`,
-      user,
+      apiUser,
     );
     return this.mapDTOToUser(data);
   }
@@ -92,9 +115,10 @@ export default class UsersRestRepository implements UsersRepository {
   }
 
   async updateCurrentUser(user: UserUpdate): Promise<User> {
+    const apiUser = this.mapUserUpdateToApi(user);
     const data = await httpClient.put<UserOutDTO>(
       "/api/v1/users/profile",
-      user,
+      apiUser,
     );
     return this.mapDTOToUser(data);
   }
