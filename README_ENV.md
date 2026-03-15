@@ -16,6 +16,15 @@ NEXT_PUBLIC_API_URL=http://212.34.141.4:8080
 
 # API Secret (должен совпадать с бэкендом)
 NEXT_PUBLIC_API_SECRET=9f3c2e7a1d4b8a6f0c5e9d7a2b4f6e1c8a0d9b3e5f7c2a4e6d1b8f0a9c5
+
+# Флаг мокирования авторизации телеграма
+# ТОЛЬКО ДЛЯ ЛОКАЛЬНОЙ СБОРКИ
+NEXT_PUBLIC_SKIP_TELEGRAM_AUTH=false
+
+# Токен тестового бота для мокирования авторизации телеграма
+# Должен совпадать с токеном на бекенде
+# ТОЛЬКО ДЛЯ ЛОКАЛЬНОЙ СБОРКИ 
+NEXT_PUBLIC_TELEGRAM_BOT_TOKEN=123456:TEST_TOKEN
 ```
 
 ## Бэкенд (.env)
