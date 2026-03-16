@@ -143,13 +143,13 @@ export default function EventPage(
     }
   }
 
-  return event ? (<main className="mx-auto">
+  return event ? (<main className="mx-auto max-w-xl">
     <div className="p-4">
-      <div className="w-full flex items-center justify-center relative aspect-2/1 rounded-xl overflow-hidden">
-        <Image src={event!.imageUrl} className="object-cover " fill alt={event.title} />
+      <div className="w-full rounded-xl overflow-hidden max-w-xl">
+        <img src={ event?.imageUrl } alt={ event.title }/>
       </div>
       <h1 className="text-white tracking-tight text-[32px] font-bold leading-tight text-left pb-3 pt-6">
-        {event.title}
+        { event.title }
       </h1>
       <div className="mt-3 flex flex-col gap-6">
         <InfoItem icon={CalendarIcon} value={dateFormatter.format(event.date)} />
@@ -157,7 +157,7 @@ export default function EventPage(
         <InfoItem icon={PersonIcon} value={event.organizer.username || event.organizer.telegram_id} />
       </div>
       <h2 className="text-white text-xl font-bold mb-2 mt-6">Описание</h2>
-      <p className="mt-3 text-lg leading-7 text-gray-300">
+      <p className="mt-3 text-lg leading-7 text-gray-300 whitespace-pre-wrap">
         {event.description}
       </p>
       <div className="flex items-center justify-between mt-8">
