@@ -1,6 +1,8 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { DEV_CONFIG } from "@/config/dev.config";
+import { mockTelegram } from "@/config/mock-telegram-dev";
 
 interface TelegramContextType {
   webApp: typeof window.Telegram.WebApp | null;
@@ -26,8 +28,15 @@ export const TelegramProvider = ({ children }: TelegramProviderProps) => {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    const initTelegram = () => {
-      if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+    const initTelegram = async () => {
+      if (typeof window === "undefined") return
+    
+      // Мокируем окружение телеграма в дев сборке
+      if (DEV_CONFIG.SKIP_TELEGRAM_AUTH) {
+        await mockTelegram()
+      }
+      
+      if (window.Telegram?.WebApp) {
         const tg = window.Telegram.WebApp;
 
         tg.ready();
