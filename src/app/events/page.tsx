@@ -35,7 +35,7 @@ export default function EventPage(
   const loadParticipants = async (eventId: string) => {
     try {
       console.log("🔄 Loading participants for event:", eventId);
-      const registrations = await registrationsRepo.getEventParticipants(Number(eventId));
+      const registrations = await registrationsRepo.getEventRegistrations(Number(eventId));
       console.log("✅ Loaded registrations:", registrations);
       const users = registrations.map(reg => reg.user).filter((u): u is SimpleUser => u !== undefined);
       console.log("✅ Extracted users:", users);
@@ -68,7 +68,7 @@ export default function EventPage(
 
       try {
         const registrations = await registrationsRepo.getMyRegistrations();
-        const registration = registrations.find(reg => reg.eventId === Number(id));
+        const registration = registrations.find(reg => reg.event.id === Number(id));
         if (registration) {
           setSigned(true);
           setRegistrationId(registration.id);
@@ -104,7 +104,7 @@ export default function EventPage(
       // Всегда перезапрашиваем регистрации после ошибки чтобы обновить UI
       try {
         const registrations = await registrationsRepo.getMyRegistrations();
-        const registration = registrations.find(reg => reg.eventId === Number(id));
+        const registration = registrations.find(reg => reg.event.id === Number(id));
         if (registration) {
           console.log("✅ Found existing registration:", registration);
           setSigned(true);
