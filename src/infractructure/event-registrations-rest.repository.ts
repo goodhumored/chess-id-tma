@@ -49,12 +49,13 @@ type EventRegistrationOutDTO = {
   event_id: number;
   registration_number: number;
   created_at: string;
+  user: SimpleUserDTO;
+  event: SimpleEventDTO;
 };
 
 type EventRegistrationFullDTO = {
   id: number;
   user_id: number;
-  event_id: number;
   registration_number: number;
   created_at: string;
   user: SimpleUserDTO;
@@ -67,12 +68,21 @@ export default class EventRegistrationsRestRepository
   private mapOutDTOToRegistration(
     dto: EventRegistrationOutDTO,
   ): EventRegistration {
+    const event = {
+      ...dto.event,
+      created_at: new Date(dto.event.created_at),
+      datetime_start: new Date(dto.event.datetime_start),
+      datetime_end: new Date(dto.event.datetime_end)
+    }
+
     return new EventRegistration(
       dto.id,
       dto.user_id,
       dto.event_id,
       dto.registration_number,
       new Date(dto.created_at),
+      dto.user,
+      event,
     );
   }
 
@@ -114,7 +124,7 @@ export default class EventRegistrationsRestRepository
     return new EventRegistration(
       dto.id,
       dto.user_id,
-      dto.event_id,
+      dto.event.id,
       dto.registration_number,
       new Date(dto.created_at),
       user,
@@ -144,7 +154,7 @@ export default class EventRegistrationsRestRepository
         params.append("user_id", query.user_id.toString());
       }
 
-      const endpoint = `/api/v1/event-registrations/${params.toString() ? `?${params.toString()}` : ""}`;
+      const endpoint = `/api/v1/event-registrations${params.toString() ? `?${params.toString()}` : ""}`;
       const data =
         await httpClient.get<EventRegistrationOutDTO[]>(endpoint);
 

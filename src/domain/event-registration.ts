@@ -36,8 +36,8 @@ export default class EventRegistration {
   eventId: number;
   registrationNumber: number;
   createdAt: Date;
-  user?: SimpleUser | undefined;
-  event?: SimpleEvent | undefined;
+  user: SimpleUser;
+  event: SimpleEvent;
 
   constructor(
     id: number,
@@ -45,19 +45,15 @@ export default class EventRegistration {
     eventId: number,
     registrationNumber: number,
     createdAt: Date,
-    user?: SimpleUser | undefined,
-    event?: SimpleEvent | undefined,
+    user: SimpleUser,
+    event: SimpleEvent,
   ) {
     this.id = id;
     this.userId = userId;
     this.eventId = eventId;
     this.registrationNumber = registrationNumber;
     this.createdAt = createdAt;
-    if (user !== undefined) {
-      this.user = user;
-    }
-    if (event !== undefined) {
-      this.event = event;
-    }
+    this.user = user;
+    this.event = event;
   }
 }
