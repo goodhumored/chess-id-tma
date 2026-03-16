@@ -172,7 +172,7 @@ export default function EventPage(
         )}
       </div>
       <div 
-        className="flex items-center gap-4 mt-3 cursor-pointer hover:opacity-80 transition-opacity"
+        className={`flex items-center gap-4 mt-3 ${participantsCount ? "cursor-pointer hover:opacity-80" : ""} transition-opacity`}
         onClick={() => participantsCount > 0 && setShowParticipantsModal(true)}
       >
         {participantsCount > 0 ? (
