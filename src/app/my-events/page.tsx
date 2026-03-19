@@ -34,7 +34,7 @@ function simpleEventToChessEvent(simpleEvent: SimpleEvent): ChessEvent {
     city,
     0, // participants - пока неизвестно сколько
     simpleEvent.limit_participants,
-    `https://picsum.photos/seed/${simpleEvent.id}/800/600`, // placeholder image
+    simpleEvent.image_url,
     simpleEvent.status,
     simpleEvent.created_at,
   );

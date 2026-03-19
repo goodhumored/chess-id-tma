@@ -38,7 +38,7 @@ function simpleEventToChessEvent(simpleEvent: SimpleEvent): ChessEvent {
     city,
     0,
     simpleEvent.limit_participants,
-    `https://picsum.photos/seed/${simpleEvent.id}/800/600`,
+    simpleEvent.image_url,
     simpleEvent.status,
     simpleEvent.created_at,
   );
