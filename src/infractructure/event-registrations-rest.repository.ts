@@ -41,6 +41,7 @@ type SimpleEventDTO = {
   created_at: string;
   organizer: SimpleOrganizerDTO;
   city: SimpleCityDTO;
+  image_url: string;
 };
 
 type EventRegistrationOutDTO = {
@@ -117,6 +118,7 @@ export default class EventRegistrationsRestRepository
       limit_participants: dto.event.limit_participants,
       status: dto.event.status,
       created_at: new Date(dto.event.created_at),
+      image_url: dto.event.image_url,
       organizer,
       city,
     };
