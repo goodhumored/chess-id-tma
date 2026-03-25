@@ -154,7 +154,9 @@ export default function EventPage(
       <div className="mt-3 flex flex-col gap-6">
         <InfoItem icon={CalendarIcon} value={dateFormatter.format(event.date)} />
         <InfoItem icon={Location} value={`${event.city.name}, ${event.location}`} />
-        <InfoItem icon={PersonIcon} value={event.organizer.username || event.organizer.telegram_id} />
+        <InfoItem 
+            icon={PersonIcon} 
+            value={event.organizerName || event.organizer.username || event.organizer.telegram_id} />
       </div>
       <h2 className="text-white text-xl font-bold mb-2 mt-6">Описание</h2>
       <p className="mt-3 text-lg leading-7 text-gray-300 whitespace-pre-wrap">

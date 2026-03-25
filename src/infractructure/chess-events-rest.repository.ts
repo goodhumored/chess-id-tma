@@ -30,6 +30,7 @@ type EventOutDTO = {
   organizer: UserShortDTO;
   city: CityShortDTO;
   created_at: string;
+  organizer_name: string;
 };
 
 type EventCreateDTO = {
@@ -44,6 +45,7 @@ type EventCreateDTO = {
   limit_participants?: number | null;
   status?: string;
   image_url?: string | null;
+  organizer_name: string;
 };
 
 type EventUpdateDTO = {
@@ -58,6 +60,7 @@ type EventUpdateDTO = {
   limit_participants?: number | null;
   status?: string | null;
   image_url?: string | null;
+  organizer_name: string;
 };
 
 export default class ChessEventsRestRepository
@@ -92,7 +95,8 @@ export default class ChessEventsRestRepository
       dto.limit_participants,
       dto.image_url || this.defaultImageUrl,
       dto.status,
-      new Date(dto.created_at),
+      new Date(dto.created_at), 
+      dto.organizer_name,
     );
   }
 

@@ -29,6 +29,7 @@ export type SimpleEvent = {
   organizer: SimpleOrganizer;
   city: SimpleCity;
   image_url: string;
+  organizerName: string;
 };
 
 export default class EventRegistration {

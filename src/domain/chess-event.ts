@@ -30,6 +30,7 @@ export default class ChessEvent {
   imageUrl: string;
   status: string;
   createdAt: Date;
+  organizerName: string;
 
   constructor(
     id: number,
@@ -46,6 +47,7 @@ export default class ChessEvent {
     imageUrl: string,
     status: string,
     createdAt: Date,
+    organizerName: string,
   ) {
     this.id = id;
     this.title = title;
@@ -61,6 +63,7 @@ export default class ChessEvent {
     this.imageUrl = imageUrl;
     this.status = status;
     this.createdAt = createdAt;
+    this.organizerName = organizerName;
   }
 
   dateString() {

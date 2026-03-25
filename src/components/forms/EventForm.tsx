@@ -54,6 +54,7 @@ export default function EventForm({
   const [cityId, setCityId] = useState<number | null>(
     event?.city.id || user?.city_id || null
   );
+  const [organizerName, setOrganizerName] = useState<string>(event?.organizerName || "")
   const [limitParticipants, setLimitParticipants] = useState<string>(
     event?.maxParticipants?.toString() || ""
   );
@@ -97,7 +98,12 @@ export default function EventForm({
       setError("Выберите город");
       return;
     }
-
+    
+    if (!organizerName?.trim()) {
+      setError("Укажите организатора")
+      return;
+    }
+    
     setIsLoading(true);
     setError(null);
 
@@ -118,6 +124,7 @@ export default function EventForm({
           : null,
         skill_level: skillLevel,
         image_url: imageUrl || null,
+        organizer_name: organizerName,
       };
 
       let createdEvent: ChessEvent;
@@ -246,6 +253,21 @@ export default function EventForm({
           placeholder="Например: ул. Ленина, 10, зал №3"
           className="w-full bg-slate-800 text-white px-4 py-3 rounded-lg border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
           required
+        />
+      </div>
+
+      {/* Организатора */}
+      <div className="flex flex-col gap-2">
+        <label className="text-white text-base font-medium">
+          Организатор *
+        </label>
+        <input
+            type="text"
+            value={organizerName}
+            onChange={(e) => setOrganizerName(e.target.value)}
+            placeholder="Например: Лига Севера"
+            className="w-full bg-slate-800 text-white px-4 py-3 rounded-lg border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
+            required
         />
       </div>
 
