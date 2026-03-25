@@ -37,6 +37,7 @@ function simpleEventToChessEvent(simpleEvent: SimpleEvent): ChessEvent {
     simpleEvent.image_url,
     simpleEvent.status,
     simpleEvent.created_at,
+    simpleEvent.organizerName,
   );
 }
 

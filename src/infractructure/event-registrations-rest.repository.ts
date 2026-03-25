@@ -42,6 +42,7 @@ type SimpleEventDTO = {
   organizer: SimpleOrganizerDTO;
   city: SimpleCityDTO;
   image_url: string;
+  organizer_name: string;
 };
 
 type EventRegistrationOutDTO = {
@@ -69,11 +70,13 @@ export default class EventRegistrationsRestRepository
   private mapOutDTOToRegistration(
     dto: EventRegistrationOutDTO,
   ): EventRegistration {
+    const { organizer_name, ...dtoEvent } = dto.event 
     const event = {
-      ...dto.event,
+      ...dtoEvent,
       created_at: new Date(dto.event.created_at),
       datetime_start: new Date(dto.event.datetime_start),
-      datetime_end: new Date(dto.event.datetime_end)
+      datetime_end: new Date(dto.event.datetime_end),
+      organizerName: organizer_name,
     }
 
     return new EventRegistration(
@@ -121,6 +124,7 @@ export default class EventRegistrationsRestRepository
       image_url: dto.event.image_url,
       organizer,
       city,
+      organizerName: dto.event.organizer_name,
     };
 
     return new EventRegistration(

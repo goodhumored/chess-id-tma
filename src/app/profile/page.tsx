@@ -41,6 +41,7 @@ function simpleEventToChessEvent(simpleEvent: SimpleEvent): ChessEvent {
     simpleEvent.image_url,
     simpleEvent.status,
     simpleEvent.created_at,
+    simpleEvent.organizerName,  
   );
 }
 
@@ -424,7 +425,7 @@ function EventCard({ event }: { event: ChessEvent }) {
         </div>
         <div className="flex items-center gap-2 text-slate-400">
           <Image src={LocationIcon} alt="" />
-          <p className="text-sm">Парк Горького, Москва</p>
+          <p className="text-sm">{ event.city.name }</p>
         </div>
       </div>
     </div>)

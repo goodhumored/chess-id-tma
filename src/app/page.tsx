@@ -39,7 +39,7 @@ export default function Home() {
 
   useEffect(() => {
     // Не загружаем события пока не загрузится профиль
-    if (authLoading) {
+    if (authLoading || !selected || !profile) {
       return;
     }
 
