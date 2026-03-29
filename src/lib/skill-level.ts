@@ -1,16 +1,16 @@
-export type DisplaySkillLevel = "новичок" | "любитель" | "профессионал";
+export type DisplaySkillLevel = "Новичок" | "Любитель" | "Профессионал";
 export type ApiSkillLevel = "Newbie" | "Nonpro" | "Pro";
 
 const displayToApiMap: Record<DisplaySkillLevel, ApiSkillLevel> = {
-  "новичок": "Newbie",
-  "любитель": "Nonpro",
-  "профессионал": "Pro",
+  "Новичок": "Newbie",
+  "Любитель": "Nonpro",
+  "Профессионал": "Pro",
 };
 
 const apiToDisplayMap: Record<ApiSkillLevel, DisplaySkillLevel> = {
-  "Newbie": "новичок",
-  "Nonpro": "любитель",
-  "Pro": "профессионал",
+  "Newbie": "Новичок",
+  "Nonpro": "Любитель",
+  "Pro": "Профессионал",
 };
 
 export function toApiSkillLevel(display: string | null): string | null {
