@@ -1,1 +1,12 @@
- docker build --platform linux/amd64 --build-arg NEXT_PUBLIC_API_URL=https://api.chess-id.goodhumored.ru --build-arg NEXT_PUBLIC_API_SECRET=9f3c2e7a1d4b8a6f0c5e9d7a2b4f6e1c8a0d9b3e5f7c2a4e6d1b8f0a9c5 -t goodhumored/chess-id-tma . && docker push goodhumored/chess-id-tma:latest
+#!/bin/bash
+
+set -a
+source .env.production
+set +a
+
+docker build \
+  --platform linux/amd64 \
+  --build-arg NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
+  --build-arg NEXT_PUBLIC_API_SECRET=$NEXT_PUBLIC_API_SECRET \
+  -t $DOCKER_IMAGE_NAME . && \
+docker push $DOCKER_IMAGE_NAME

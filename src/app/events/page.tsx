@@ -292,7 +292,7 @@ export default function EventPage(
         onClick={() => setShowParticipantsModal(false)}
       >
         <div 
-          className="bg-gray-900 rounded-t-3xl w-full max-w-2xl max-h-[80vh] overflow-hidden animate-slide-up"
+          className="bg-gray-900 rounded-t-3xl w-full max-w-2xl max-h-[80vh] overflow-hidden animate-slide-up pb-[80px]"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="sticky top-0 bg-gray-900 border-b border-gray-800 p-4 flex items-center justify-between">
@@ -304,7 +304,7 @@ export default function EventPage(
               ✕
             </button>
           </div>
-          <div className="overflow-y-auto max-h-[calc(80vh-80px)] p-4">
+          <div className="overflow-y-auto max-h-[calc(80vh-80px)] p-4 pb-[80px]">
             <div className="space-y-3">
               {participants.map((participant, index) => (
                 <div 
