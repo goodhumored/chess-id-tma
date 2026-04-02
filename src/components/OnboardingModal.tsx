@@ -13,22 +13,22 @@ interface OnboardingModalProps {
   }) => void;
 }
 
-type SkillLevel = "новичок" | "любитель" | "профессионал";
+type SkillLevel = "Новичок" | "Любитель" | "Профессионал";
 
 const SKILL_LEVELS: { value: SkillLevel; label: string; description: string }[] =
   [
     {
-      value: "новичок",
+      value: "Новичок",
       label: "Новичок",
       description: "Только начинаю изучать шахматы",
     },
     {
-      value: "любитель",
+      value: "Любитель",
       label: "Любитель",
       description: "Играю регулярно, знаю основные стратегии",
     },
     {
-      value: "профессионал",
+      value: "Профессионал",
       label: "Профессионал",
       description: "Участвую в турнирах, имею разряд",
     },

@@ -11,7 +11,7 @@ type TgUser = {
  * Замокированный пользователь телеграма
  */
 const MOCKED_USER: TgUser = {
-    id: 9999,
+    id: 99999,
     first_name: "ИМЯ",
     last_name: "ФАМИЛИЯ",
     username: "test_user_123"

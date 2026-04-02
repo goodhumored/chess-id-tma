@@ -310,9 +310,9 @@ function SkillLevelModal({
   const [selectedLevel, setSelectedLevel] = useState(currentLevel);
 
   const SKILL_LEVELS = [
-    { value: "новичок", label: "Новичок", description: "Только начинаю изучать шахматы" },
-    { value: "любитель", label: "Любитель", description: "Играю регулярно, знаю основные стратегии" },
-    { value: "профессионал", label: "Профессионал", description: "Участвую в турнирах, имею разряд" },
+    { value: "Новичок", label: "Новичок", description: "Только начинаю изучать шахматы" },
+    { value: "Любитель", label: "Любитель", description: "Играю регулярно, знаю основные стратегии" },
+    { value: "Профессионал", label: "Профессионал", description: "Участвую в турнирах, имею разряд" },
   ];
 
   if (!isOpen) return null;

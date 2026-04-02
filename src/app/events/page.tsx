@@ -7,7 +7,7 @@ import Image, { StaticImageData } from "next/image";
 import CalendarIcon from '@/../public/calendar_month.svg';
 import Location from '@/../public/location_on.svg';
 import PersonIcon from '@/../public/person.svg';
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ChessEvent from "../../domain/chess-event";
 import { useAuth } from "../../components/AuthProvider";
 import { SimpleUser } from "../../domain/event-registration";
@@ -30,6 +30,7 @@ export default function EventPage(
   const [registrationId, setRegistrationId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showParticipantsModal, setShowParticipantsModal] = useState(false);
+  const isOrganizer = useMemo(() => user && user?.id == event?.organizer.id, [user, event])
 
   // Функция для загрузки участников
   const loadParticipants = async (eventId: string) => {
@@ -164,7 +165,7 @@ export default function EventPage(
       </p>
       <div className="flex items-center justify-between mt-8">
         <h2 className="text-white text-xl font-bold">Участники</h2>
-        {participantsCount > 0 && (
+        {participantsCount > 0 && isOrganizer && (
           <button 
             onClick={() => setShowParticipantsModal(true)}
             className="text-blue-400 text-sm hover:text-blue-300 transition-colors"
@@ -174,8 +175,8 @@ export default function EventPage(
         )}
       </div>
       <div 
-        className={`flex items-center gap-4 mt-3 ${participantsCount ? "cursor-pointer hover:opacity-80" : ""} transition-opacity`}
-        onClick={() => participantsCount > 0 && setShowParticipantsModal(true)}
+        className={`flex items-center gap-4 mt-3 ${participantsCount && isOrganizer ? "cursor-pointer hover:opacity-80" : ""} transition-opacity`}
+        onClick={() => participantsCount > 0 && isOrganizer && setShowParticipantsModal(true)}
       >
         {participantsCount > 0 ? (
           <>
@@ -183,15 +184,12 @@ export default function EventPage(
               {participants.slice(0, 5).map((participant) => (
                 <div 
                   key={participant.id} 
-                  className="relative rounded-full size-12 overflow-hidden border-2 border-gray-800 bg-gray-700 hover:z-10 transition-transform hover:scale-110" 
+                  className="relative rounded-full size-12 overflow-hidden border-2 border-gray-800 bg-gray-700 transition-transform" 
                   title={participant.username || `User ${participant.telegram_id}`}
                 >
-                  <Image
-                    src={`https://i.pravatar.cc/150?img=${participant.id}`}
-                    alt={participant.username || `User ${participant.telegram_id}`}
-                    fill
-                    className="object-cover"
-                  />
+                  <div className="flex items-center justify-center w-full h-full text-white font-bold text-lg">
+                    {participant.username?.[0]?.toUpperCase() || "?"}
+                  </div>
                 </div>
               ))}
               {
@@ -222,9 +220,6 @@ export default function EventPage(
         const now = new Date();
         const eventStarted = event.date < now;
         const eventEnded = event.dateEnd ? event.dateEnd < now : false;
-
-        // Проверяем, является ли текущий пользователь организатором
-        const isOrganizer = user && event && user.id === event.organizer.id;
 
         // Если событие закончилось или идёт
         if (eventEnded && !isOrganizer) {
@@ -309,19 +304,16 @@ export default function EventPage(
               {participants.map((participant, index) => (
                 <div 
                   key={participant.id}
-                  className="flex items-center gap-4 p-3 bg-gray-800/50 rounded-xl hover:bg-gray-800 transition-colors"
+                  className="flex items-center gap-4 p-3 bg-gray-800/50 rounded-xl"
                 >
                   <div className="relative rounded-full size-12 overflow-hidden bg-gray-700 flex-shrink-0">
-                    <Image
-                      src={`https://i.pravatar.cc/150?img=${participant.id}`}
-                      alt={participant.username || `User ${participant.telegram_id}`}
-                      fill
-                      className="object-cover"
-                    />
+                    <div className="flex items-center justify-center w-full h-full text-white font-bold text-lg">
+                      { participant.username?.[0]?.toUpperCase() || "?" }
+                    </div>
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-white font-medium truncate">
-                      {participant.username || `User ${participant.telegram_id}`}
+                      { participant.username || `User ${ participant.telegram_id}`}
                     </div>
                     <div className="text-gray-400 text-sm">
                       Участник #{index + 1}
