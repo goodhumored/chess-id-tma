@@ -6,15 +6,21 @@ import CitiesRestRepository from "../infractructure/cities-rest.repository";
 
 interface CitySelectionModalProps {
   isOpen: boolean;
+  currentCity: number | null;
   onCitySelected: (cityId: number) => void;
+  isRegistration?: boolean;
+  onClose?: () => void;
 }
 
 export default function CitySelectionModal({
   isOpen,
+  currentCity,
   onCitySelected,
+  isRegistration = true,
+  onClose,
 }: CitySelectionModalProps) {
   const [cities, setCities] = useState<City[]>([]);
-  const [selectedCityId, setSelectedCityId] = useState<number | null>(null);
+  const [selectedCityId, setSelectedCityId] = useState<number | null>(currentCity ?? null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -44,7 +50,7 @@ export default function CitySelectionModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm pointer-events-auto">
       <div className="bg-slate-900 rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl border border-slate-700">
         <h2 className="text-white text-2xl font-bold mb-2">
-          Добро пожаловать! 👋
+          {isRegistration ? "Добро пожаловать! 👋" : "Выберете город 🏙"}
         </h2>
         <p className="text-slate-400 text-base mb-6">
           Выберите ваш город, чтобы видеть релевантные шахматные события
@@ -72,13 +78,30 @@ export default function CitySelectionModal({
               ))}
             </div>
 
-            <button
-              onClick={handleSubmit}
-              disabled={!selectedCityId}
-              className="w-full bg-blue-500 text-white font-bold py-3 px-4 rounded-xl text-base disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
-            >
-              Продолжить
-            </button>
+            { isRegistration ?
+              <button
+                onClick={handleSubmit}
+                disabled={!selectedCityId}
+                className="w-full bg-blue-500 text-white font-bold py-3 px-4 rounded-xl text-base disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
+              >
+                Продолжить
+              </button> :
+              <div className="flex space-x-3">
+                <button
+                  onClick={onClose}
+                  className="flex-1 bg-slate-700 text-white font-bold py-3 px-4 rounded-xl text-base hover:bg-slate-600 transition-colors"
+                >
+                  Отмена
+                </button>
+                <button
+                  onClick={handleSubmit}
+                  disabled={!selectedCityId}
+                  className="flex-1 bg-blue-500 text-white font-bold py-3 px-4 rounded-xl text-base disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
+                >
+                  Продолжить
+                </button>
+              </div>
+            }
           </>
         )}
       </div>

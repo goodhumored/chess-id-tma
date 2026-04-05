@@ -9,6 +9,7 @@ import ChessEventsRestRepository from "../../infractructure/chess-events-rest.re
 import ImageUploader from "../forms/ImageUploader";
 import { useAuth } from "../AuthProvider";
 import Select from "./Select";
+import AddressInput from "../AddressInput";
 
 const EVENT_TYPES = [
   { value: "tournament", label: "Турнир" },
@@ -246,13 +247,9 @@ export default function EventForm({
       {/* Адрес */}
       <div className="flex flex-col gap-2">
         <label className="text-white text-base font-medium">Адрес *</label>
-        <input
-          type="text"
+        <AddressInput
           value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          placeholder="Например: ул. Ленина, 10, зал №3"
-          className="w-full bg-slate-800 text-white px-4 py-3 rounded-lg border-2 border-transparent focus:border-blue-500 focus:outline-none transition-colors"
-          required
+          onChange={setAddress}
         />
       </div>
 
