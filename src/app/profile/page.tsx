@@ -160,7 +160,10 @@ export default function Profile() {
     <main className="">
       <CitySelectionModal
         isOpen={showCityModal}
+        currentCity={localProfile.city?.id ?? null}
         onCitySelected={handleCityChange}
+        isRegistration={false}
+        onClose={() => setShowCityModal(false)}
       />
       <SkillLevelModal
         isOpen={showSkillModal}
