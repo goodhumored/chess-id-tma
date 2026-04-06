@@ -21,7 +21,7 @@ export default function CitySelectionModal({
     async function loadCities() {
       const citiesRepo = new CitiesRestRepository();
       const loadedCities = await citiesRepo.getAll();
-      setCities(loadedCities);
+      setCities(loadedCities.filter(x => x.name.toLowerCase() != "онлайн"));
       setIsLoading(false);
     }
 
