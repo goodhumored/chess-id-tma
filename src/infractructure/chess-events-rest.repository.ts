@@ -116,8 +116,8 @@ export default class ChessEventsRestRepository
         params.append("event_type", query.type);
       }
 
-      if (query.city_id !== undefined) {
-        params.append("city_id", query.city_id.toString());
+      if (query.city_id !== undefined && query.city_id.length > 0) {
+        query.city_id.forEach(id => params.append("city_id", id.toString()))
       }
 
       if (query.dateFrom !== undefined) {

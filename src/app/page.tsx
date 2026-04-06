@@ -11,12 +11,14 @@ import ChessEvent from "../domain/chess-event";
 import ChessEventsService from "../domain/chess-events-service";
 import ChessEventsRestRepository from "../infractructure/chess-events-rest.repository";
 import EventCard from "../components/event-card";
+import City from "@/domain/city";
+import CitiesRestRepository from "@/infractructure/cities-rest.repository";
 
 
 const filters = {
   all: "Все",
   tournament: "Турниры",
-  training: "Тренировки",
+  online: "Онлайн",
   meeting: "Встречи",
   lectures: "Лекции",
 }
@@ -26,6 +28,7 @@ export default function Home() {
   const service = new ChessEventsService(repo);
   const [events, setEvents] = useState<ChessEvent[]>([]);
   const [selected, setSelected] = useState<string>("all");
+  const [cities, setCities] = useState<City[]>([]);
   const [eventsLoading, setEventsLoading] = useState(true);
 
   // Используем AuthProvider для получения текущего пользователя
@@ -38,37 +41,51 @@ export default function Home() {
   const { canCreateEvent } = useRole();
 
   useEffect(() => {
-    // Не загружаем события пока не загрузится профиль
-    if (authLoading || !selected || !profile) {
-      return;
-    }
+    const loadEvents = async () => {
+      // Не загружаем события пока не загрузится профиль
+      if (authLoading || !selected || !profile) {
+        return;
+      }
 
-    // Устанавливаем loading state перед загрузкой
-    setEventsLoading(true);
+      // Устанавливаем loading state перед загрузкой
+      setEventsLoading(true);
 
-    const filters: { type?: string; city_id?: number; dateFrom?: Date } = {};
+      if (cities.length == 0) {
+        const citiesRepo = new CitiesRestRepository();
+        const loadedCities = await citiesRepo.getAll();
+        setCities(loadedCities);
+      }
 
-    // Добавляем фильтр по типу события (если не "all")
-    if (selected !== "all") {
-      filters.type = selected;
-    }
+      const filters: { type?: string; city_id: number[]; dateFrom?: Date } = { city_id: [] };
 
-    // Добавляем фильтр по городу пользователя (если указан)
-    if (profile?.city_id) {
-      filters.city_id = profile.city_id;
-    }
+      // Добавляем фильтр по типу события (если не "all")
+      if (selected !== "all" && selected !== "online") {
+        filters.type = selected;
+      }
 
-    // Не показываем события старше 1 дня
-    const oneDayAgo = new Date();
-    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
-    filters.dateFrom = oneDayAgo;
+      // Добавляем фильтр по городу пользователя (если указан)
+      if (profile?.city_id) {
+        filters.city_id.push(profile.city_id);
+      }
 
-    service.findEvents(filters).then((loadedEvents) => {
+      // Добавляем фильтр онлайн города
+      if (selected === "online") {
+        filters.city_id.push(cities.find(x => x.name.toLowerCase() == "онлайн")?.id ?? -1)
+      }
+
+      // Не показываем события старше 1 дня
+      const oneDayAgo = new Date();
+      oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+      filters.dateFrom = oneDayAgo;
+
+      const loadedEvents = await service.findEvents(filters)
       setEvents(loadedEvents);
       setEventsLoading(false);
-    });
+    }
+    
+    loadEvents()
   }, [selected, profile, authLoading]);
-
+  
   if (!isReady || authLoading) {
     return (
       <div className="flex items-center justify-center">
@@ -162,9 +179,19 @@ export default function Home() {
 function Filters({ filters, onChange }: { filters: { [key: string]: string }, onChange?: (key: string) => void }) {
   const [selectedItem, setSelectedItem] = useState<string | undefined>(undefined);
   return <div className="flex max-w-none items-center space-x-3">
-    {Object.entries(filters).map(([val, label]) => (
-      <div key={val} className={cn("rounded-full leading-normal py-2 px-4 transition-colors", val == selectedItem ? "bg-[#2B8CEE] text-white  font-bold" : "bg-[#1F2937] text-[#D1D5DB] font-medium")} onClick={() => { setSelectedItem(val); onChange?.(val) }}>
+    {
+      Object.entries(filters).map(([val, label]) => (
+      <div 
+          key={val}
+          className={
+              cn(
+                  "rounded-full leading-normal py-2 px-4 transition-colors", 
+                  val == selectedItem ? "bg-[#2B8CEE] text-white  font-bold" : "bg-[#1F2937] text-[#D1D5DB] font-medium"
+              )
+          }
+          onClick={() => { setSelectedItem(val); onChange?.(val) }}>
         {label}
-      </div>))}
+      </div>))
+    }
   </div>
 }

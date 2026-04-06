@@ -8,7 +8,7 @@ export type ChessEventsQuery = {
   limit?: number;
   skip?: number;
   participantId?: string;
-  city_id?: number;
+  city_id?: number[];
   dateFrom?: Date;
 };
 
