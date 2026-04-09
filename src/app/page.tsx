@@ -63,8 +63,8 @@ export default function Home() {
         filters.type = selected;
       }
 
-      // Добавляем фильтр по городу пользователя (если указан)
-      if (profile?.city_id) {
+      // Добавляем фильтр по городу пользователя (если указан) и выбран не онлайн
+      if (profile?.city_id && selected !== "online") {
         filters.city_id.push(profile.city_id);
       }
 
